@@ -242,4 +242,8 @@ abstract class BaseController implements ControllerProviderInterface {
     }  
   }
   
+  protected function decodeRequestBodyIntoParameters(Request $request){
+    return json_decode($request->getContent(), true);
+  }
+  
 }
