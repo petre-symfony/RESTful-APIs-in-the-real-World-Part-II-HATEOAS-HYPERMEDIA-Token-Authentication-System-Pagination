@@ -245,16 +245,20 @@ abstract class BaseController implements ControllerProviderInterface {
   }
   
   protected function decodeRequestBodyIntoParameters(Request $request){
-    $data = json_decode($request->getContent(), true);
-    
-    if ($data === null) {
-      $problem = new ApiProblem(
-        400,
-        ApiProblem::TYPE_INVALID_REQUEST_BODY_FORMAT
-      );
-      throw new ApiProblemException($problem);
+    //allow for a possibly empty body
+    if (!$request->getContent()){
+      $data = array();
+    } else {
+      $data = json_decode($request->getContent(), true);
+
+      if ($data === null) {
+        $problem = new ApiProblem(
+          400,
+          ApiProblem::TYPE_INVALID_REQUEST_BODY_FORMAT
+        );
+        throw new ApiProblemException($problem);
+      } 
     }
-    
     return $data;
   }
   
