@@ -6,6 +6,8 @@ use KnpU\CodeBattle\Model\Programmer;
 use KnpU\CodeBattle\Model\User;
 use KnpU\CodeBattle\Repository\UserRepository;
 use KnpU\CodeBattle\Application;
+use KnpU\CodeBattle\Api\ApiProblem;
+use KnpU\CodeBattle\Api\ApiProblemException;
 use Silex\Application as SilexApplication;
 use Silex\ControllerCollection;
 use Silex\ControllerProviderInterface;
@@ -243,7 +245,17 @@ abstract class BaseController implements ControllerProviderInterface {
   }
   
   protected function decodeRequestBodyIntoParameters(Request $request){
-    return json_decode($request->getContent(), true);
+    $data = json_decode($request->getContent(), true);
+    
+    if ($data === null) {
+      $problem = new ApiProblem(
+        400,
+        ApiProblem::TYPE_INVALID_REQUEST_BODY_FORMAT
+      );
+      throw new ApiProblemException($problem);
+    }
+    
+    return $data;
   }
   
 }
