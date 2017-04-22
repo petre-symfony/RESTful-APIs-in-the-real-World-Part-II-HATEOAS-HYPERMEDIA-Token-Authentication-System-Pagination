@@ -17,7 +17,7 @@ use KnpU\CodeBattle\Repository\ProgrammerRepository;
 use KnpU\CodeBattle\Repository\ProjectRepository;
 use KnpU\CodeBattle\Security\Token\ApiTokenRepository;
 use Symfony\Component\HttpFoundation\Response;
-
+use JMS\Serializer\SerializationContext;
 /**
  * Base controller class to hide Silex-related implementation details
  */
@@ -229,9 +229,12 @@ abstract class BaseController implements ControllerProviderInterface
         return $this->container['repository.api_token'];
     }
     
-    protected function serialize($data) {
+    protected function serialize($data, $format = 'json') {
+      $context = new SerializationContext();
+      $context->setSerializeNull(true);
+      
       return $this->container['serializer']
-        ->serialize($data, 'json');
+        ->serialize($data, $format, $context);
     }
     
     protected function createApiResponse($data, $statusCode = 200){
