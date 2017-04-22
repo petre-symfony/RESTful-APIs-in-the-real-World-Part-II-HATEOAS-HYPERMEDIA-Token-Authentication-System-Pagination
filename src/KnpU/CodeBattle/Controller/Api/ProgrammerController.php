@@ -92,7 +92,9 @@ class ProgrammerController extends BaseController {
 
     $json = $this->serialize($programmer);
 
-    $response = new Response($json, 200);
+    $response = new Response($json, 200, array(
+      'Content-Type' => 'application/json'    
+    ));
 
     return $response;
   }
