@@ -14,8 +14,8 @@ Feature:
     Given I have the payload:
       """
       {
-        "programmerId": "",
-        "projectId" : ""
+        "programmerId": "%programmers.Fred.id%",
+        "projectId" : "%projects.my_project.id%"
       }
       """
     When I request "POST /api/battles"
