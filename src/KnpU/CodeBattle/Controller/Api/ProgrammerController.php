@@ -142,7 +142,7 @@ class ProgrammerController extends BaseController {
       $programmer->$property = $val;
     }
 
-    $programmer->userId = $this->findUserByUsername('weaverryan')->id;
+    $programmer->userId = $this->getLoggedInUser()->id;
   }
 
 
