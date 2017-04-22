@@ -24,6 +24,9 @@ class BattleController extends BaseController{
     
     $battle = $this->getBattleManager()->battle($programmer, $project);
     
-    return $this->createApiResponse($battle, 201);
+    $response = $this->createApiResponse($battle, 201);
+    $response->headers->set('Location', 'TODO');
+    
+    return $response;
   }
 }
