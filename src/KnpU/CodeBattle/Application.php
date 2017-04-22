@@ -34,6 +34,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Validator\Mapping\ClassMetadataFactory;
 use Symfony\Component\Validator\Mapping\Loader\AnnotationLoader;
+use JMS\Serializer\SerializerBuilder;
+use JMS\Serializer\Naming\IdenticalPropertyNamingStrategy;
 
 class Application extends SilexApplication {
   public function __construct(array $values = array()) {
@@ -203,6 +205,14 @@ class Application extends SilexApplication {
 
     $this['api.validator'] = $this->share(function() use ($app) {
         return new ApiValidator($app['validator']);
+    });
+    
+    $this['serializer'] = $this->share(function() use ($app){
+      return SerializerBuilder::create()
+        ->setCacheDir($app['root_dir'].'/cache/serializer')
+        ->setDebug($app['debug'])
+        ->setPropertyNamingStrategy(new IdenticalPropertyNamingStrategy())
+        -> build();      
     });
   }
 

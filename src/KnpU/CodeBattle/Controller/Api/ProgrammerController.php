@@ -40,8 +40,8 @@ class ProgrammerController extends BaseController {
     }
 
     $this->save($programmer);
-    $data = $this->serializeProgrammer($programmer);
-    $response = new JsonResponse($data, 201);
+    
+    $response = $this->createApiResponse($programmer, 201);
     $programmerUrl = $this->generateUrl(
       'api_programmers_show',
       ['nickname' => $programmer->nickname]
@@ -58,21 +58,16 @@ class ProgrammerController extends BaseController {
       $this->throw404('Oh no! This programmer has deserted! We\'ll send a search party!');
     }
 
-    $data = $this->serializeProgrammer($programmer);
-
-    $response = new JsonResponse($data, 200);
+    $response = $this->createApiResponse($programmer, 200);
 
     return $response;
   }
 
   public function listAction() {
     $programmers = $this->getProgrammerRepository()->findAll();
-    $data = array('programmers' => array());
-    foreach ($programmers as $programmer) {
-      $data['programmers'][] = $this->serializeProgrammer($programmer);
-    }
-
-    $response = new JsonResponse($data, 200);
+    $data = array('programmers' => $programmers);
+    
+    $response = $this->createApiResponse($data, 200);
 
     return $response;
   }
@@ -92,9 +87,7 @@ class ProgrammerController extends BaseController {
 
     $this->save($programmer);
 
-    $data = $this->serializeProgrammer($programmer);
-
-    $response = new JsonResponse($data, 200);
+    $response = $this->createApiResponse($programmer, 200);
 
     return $response;
   }
@@ -147,14 +140,6 @@ class ProgrammerController extends BaseController {
     $programmer->userId = $this->findUserByUsername('weaverryan')->id;
   }
 
-  private function serializeProgrammer(Programmer $programmer) {
-    return array(
-      'nickname' => $programmer->nickname,
-      'avatarNumber' => $programmer->avatarNumber,
-      'powerLevel' => $programmer->powerLevel,
-      'tagLine' => $programmer->tagLine,
-    );
-  }
 
   private function throwApiProblemValidationException(array $errors) {
     $apiProblem = new ApiProblem(
