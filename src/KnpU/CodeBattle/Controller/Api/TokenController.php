@@ -16,7 +16,7 @@ class TokenController extends BaseController{
     
     $data = $this->decodeRequestBodyIntoParameters($request);
     $token = new ApiToken($this->getLoggedInUser()->id);
-    $token->notes = isset($data['notes']) ? $data['notes'] : 'default note';
+    $token->notes = $data->get('notes');
     
     $this->getApiTokenRepository()->save($token);
     
