@@ -83,6 +83,10 @@ class ProgrammerController extends BaseController {
     if (!$programmer) {
       $this->throw404('Oh no! This programmer has deserted! We\'ll send a search party!');
     }
+    
+    if ($programmer->userId != $this->getLoggedInUser()->id){
+      throw new AccessDeniedException();
+    }
 
     $this->handleRequest($request, $programmer);
 
