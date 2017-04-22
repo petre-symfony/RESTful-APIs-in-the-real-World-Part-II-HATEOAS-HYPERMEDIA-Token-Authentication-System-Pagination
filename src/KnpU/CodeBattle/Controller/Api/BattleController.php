@@ -22,6 +22,18 @@ class BattleController extends BaseController{
     $project = $this->getProjectRepository()->find($projectId);
     $programmer = $this->getProgrammerRepository()->find($programmerId);
     
+    $errors = array();
+    if (!$project){
+      $errors['projectId'] = 'Invalid or missing projectId';
+    }
+    if (!$programmer){
+      $errors['programmerId'] = 'Invalid or missing programmerId';
+    }
+    
+    if ($errors){
+      $this->throwApiProblemValidationException($errors);
+    }
+    
     $battle = $this->getBattleManager()->battle($programmer, $project);
     
     $response = $this->createApiResponse($battle, 201);

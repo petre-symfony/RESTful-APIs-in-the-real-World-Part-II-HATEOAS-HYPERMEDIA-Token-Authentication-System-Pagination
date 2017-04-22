@@ -14,7 +14,7 @@ Feature:
     Given I have the payload:
       """
       {
-        "programmerId": "%programmers.Fred.id%",
+        "programmerId": "foobar",
         "projectId" : "%projects.my_project.id%"
       }
       """
