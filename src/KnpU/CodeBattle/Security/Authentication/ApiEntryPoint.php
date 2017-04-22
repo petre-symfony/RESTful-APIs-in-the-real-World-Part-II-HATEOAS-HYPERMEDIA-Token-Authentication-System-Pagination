@@ -8,6 +8,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface;
 use Symfony\Component\Translation\Translator;
+use KnpU\CodeBattle\Api\ApiProblem;
+use KnpU\CodeBattle\Api\APIProblemResponseFactory;
 
 /**
  * Determines the Response that should be back if:
@@ -17,9 +19,11 @@ use Symfony\Component\Translation\Translator;
  */
 class ApiEntryPoint implements AuthenticationEntryPointInterface {
   private $translator;
+  private $responseFactory;
 
-  public function __construct(Translator $translator) {
+  public function __construct(Translator $translator, APIProblemResponseFactory $responseFactory) {
     $this->translator = $translator;
+    $this->responseFactory = $responseFactory;
   }
 
   /**
@@ -33,9 +37,10 @@ class ApiEntryPoint implements AuthenticationEntryPointInterface {
   public function start(Request $request, AuthenticationException $authException = null) {
     $message = $this->getMessage($authException);
 
-    $response = new JsonResponse(array('detail' => $message), 401);
-
-    return $response;
+    $problem = new ApiProblem(401, ApiProblem::TYPE_AUTHENTICATION_ERROR);
+    $problem->set('detail', $message);
+    
+    return $this->responseFactory->createResponse($problem);
   }
 
   /**
