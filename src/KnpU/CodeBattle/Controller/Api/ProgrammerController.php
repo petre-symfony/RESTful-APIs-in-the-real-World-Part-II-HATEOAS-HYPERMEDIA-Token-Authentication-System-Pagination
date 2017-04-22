@@ -33,9 +33,7 @@ class ProgrammerController extends BaseController {
   }
 
   public function newAction(Request $request) {
-    if (!$this->getLoggedInUser()){
-      throw new AccessDeniedException();  
-    }
+    $this->enforceUserSecurity();
      
     $programmer = new Programmer();
     $this->handleRequest($request, $programmer);

@@ -228,9 +228,18 @@ abstract class BaseController implements ControllerProviderInterface {
     return $response;
   }
   
+  protected function enforceUserSecurity() {
+    if (!$this->getLoggedInUser()){
+      throw new AccessDeniedException();  
+    }  
+  }
+      
   protected function enforceProgrammerOwnershipSecurity(Programmer $programmer) {
+    $this->enforceUserSecurity();
+    
     if ($programmer->userId != $this->getLoggedInUser()->id){
       throw new AccessDeniedException();
     }  
   }
+  
 }
