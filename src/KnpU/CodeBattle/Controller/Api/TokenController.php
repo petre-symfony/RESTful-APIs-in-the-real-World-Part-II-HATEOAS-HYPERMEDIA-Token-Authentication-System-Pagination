@@ -15,6 +15,12 @@ class TokenController extends BaseController{
     $username = $request->headers->get('PHP_AUTH_USER');
     $user = $this->getUserRepository()->findUserByUsername($username);
     
+    $data = json_decode($request->getContent(), true);
     $token = new ApiToken($user->id);
+    $token->notes = $data['notes'];
+    
+    $this->getApiTokenRepository()->save($token);
+    
+    return $this->createApiResponse($token, 201);
   }
 }
