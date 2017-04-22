@@ -29,6 +29,7 @@ use Silex\Provider\SecurityServiceProvider;
 use KnpU\CodeBattle\Repository\UserRepository;
 use KnpU\CodeBattle\Repository\ProgrammerRepository;
 use KnpU\CodeBattle\Battle\BattleManager;
+use KnpU\CodeBattle\Api\APIProblemResponseFactory;
 use Silex\Provider\ValidatorServiceProvider;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -214,6 +215,10 @@ class Application extends SilexApplication {
         ->setPropertyNamingStrategy(new IdenticalPropertyNamingStrategy())
         -> build();      
     });
+    
+    $this['api.reponse_factory'] = $this->share(function() use ($app){
+      return new APIProblemResponseFactory();
+    });
   }
 
   private function configureSecurity() {
@@ -322,18 +327,11 @@ class Application extends SilexApplication {
           $apiProblem->set('detail', $e->getMessage());
         }
       }
-
-      $data = $apiProblem->toArray();
-      // making type a URL, to a temporarily fake page
-      if ($data['type'] != 'about:blank') {
-        $data['type'] = 'http://localhost:8000/docs/errors#'.$data['type'];
-      }
-      $response = new JsonResponse(
-        $data,
-        $apiProblem->getStatusCode()
-      );
-      $response->headers->set('Content-Type', 'application/problem+json');
-
+      
+      /** @var \KnpU\CodeBattle\Api\ApiProblemResponseFactory $factory */
+      $factory = $app['api.reponse_factory'];
+      $response = $factory->createResponse($apiProblem);
+              
       return $response;
     });
   }
