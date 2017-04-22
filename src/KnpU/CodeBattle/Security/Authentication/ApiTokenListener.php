@@ -41,9 +41,7 @@ class ApiTokenListener implements ListenerInterface {
       return;
     }
 
-    return;
-    // format should be "Authorization: token ABCDEFG"
-    $tokenString = 'HARDCODED';
+    $authorizationHeader = $request->headers->get('Authorization');
 
     if (!$tokenString) {
       // there's no authentication info for us to process
