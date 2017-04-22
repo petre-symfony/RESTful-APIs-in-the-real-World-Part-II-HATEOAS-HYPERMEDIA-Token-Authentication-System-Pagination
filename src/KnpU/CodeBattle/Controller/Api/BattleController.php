@@ -22,6 +22,8 @@ class BattleController extends BaseController{
     $project = $this->getProjectRepository()->find($projectId);
     $programmer = $this->getProgrammerRepository()->find($programmerId);
     
-    return $this->createApiResponse($token, 201);
+    $battle = $this->getBattleManager()->battle($programmer, $project);
+    
+    return $this->createApiResponse($battle, 201);
   }
 }
