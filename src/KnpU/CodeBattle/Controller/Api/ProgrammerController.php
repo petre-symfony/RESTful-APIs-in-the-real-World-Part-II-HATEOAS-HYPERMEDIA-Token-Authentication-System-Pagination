@@ -147,10 +147,6 @@ class ProgrammerController extends BaseController {
     $programmer->userId = $this->findUserByUsername('weaverryan')->id;
   }
 
-  private function serialize($data) {
-    return $this->container['serializer']
-      ->serialize($data, 'json');
-  }
 
   private function throwApiProblemValidationException(array $errors) {
     $apiProblem = new ApiProblem(

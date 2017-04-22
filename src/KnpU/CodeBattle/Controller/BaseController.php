@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\Request;
 use KnpU\CodeBattle\Repository\ProgrammerRepository;
 use KnpU\CodeBattle\Repository\ProjectRepository;
 use KnpU\CodeBattle\Security\Token\ApiTokenRepository;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Base controller class to hide Silex-related implementation details
@@ -227,5 +228,19 @@ abstract class BaseController implements ControllerProviderInterface
     {
         return $this->container['repository.api_token'];
     }
-
+    
+    protected function serialize($data) {
+      return $this->container['serializer']
+        ->serialize($data, 'json');
+    }
+    
+    protected function createApiResponse($data, $statusCode = 200){
+      $json = $this->serialize($data);
+      
+      $response = new Response($json, $statusCode, array(
+          'Content-Type' => 'application/json'
+      ));
+      
+      return $response;
+    }
 }
