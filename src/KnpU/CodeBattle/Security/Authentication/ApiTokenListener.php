@@ -42,6 +42,7 @@ class ApiTokenListener implements ListenerInterface {
     }
 
     $authorizationHeader = $request->headers->get('Authorization');
+    $tokenString = $this->parseAuthorizationHeader($authorizationHeader);
 
     if (!$tokenString) {
       // there's no authentication info for us to process
