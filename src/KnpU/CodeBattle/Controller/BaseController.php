@@ -21,6 +21,7 @@ use KnpU\CodeBattle\Security\Token\ApiTokenRepository;
 use Symfony\Component\HttpFoundation\Response;
 use JMS\Serializer\SerializationContext;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\HttpFoundation\ParameterBag;
 
 /**
  * Base controller class to hide Silex-related implementation details
@@ -259,7 +260,7 @@ abstract class BaseController implements ControllerProviderInterface {
         throw new ApiProblemException($problem);
       } 
     }
-    return $data;
+    return new ParameterBag($data);
   }
   
 }
