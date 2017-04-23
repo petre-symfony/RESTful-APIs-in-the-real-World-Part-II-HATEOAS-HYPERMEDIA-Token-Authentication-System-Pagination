@@ -1,0 +1,38 @@
+Feature:
+  In order to prove my programmers' worth against projects
+  As an API client
+  I need to be able to create and view battles
+
+  Background:
+    Given the user "weaverryan" exists
+    And "weaverryan" has an authentication token "ABCD123"
+    And I set the "Authorization" header to be "token ABCD123"
+
+  Scenario: Create a battle
+    Given there is a programmer called "Fred"
+    And there is a project called "my_project"
+    Given I have the payload:
+      """
+      {
+        "programmerId": "%programmers.Fred.id%",
+        "projectId" : "%projects.my_project.id%"
+      }
+      """
+    When I request "POST /api/battles"
+    Then the response status code should be 201
+    And the "Location" header should exist
+    And the "didProgrammerWin" property should exist
+
+   Scenario: GET'ing a single battle
+    Given there is a programmer called "Fred"
+    And there is a project called "project_facebook" 
+    And there has been a battle between "Fred" and "project_facebook"
+    When I request "GET /api/battles/%battles.last.id%"
+    Then the response status code should be 200
+    And the following properties should exist:
+      """
+      didProgrammerWin
+      notes
+      """
+    And the "programmerUri" property should equal "/api/programmers/Fred"  
+    And print last response
