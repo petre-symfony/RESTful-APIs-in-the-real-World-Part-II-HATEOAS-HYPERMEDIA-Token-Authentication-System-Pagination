@@ -35,8 +35,13 @@ class ProgrammerController extends BaseController {
     
     $controllers->get('/api/programmers/{nickname}/battles', array($this, 'listBattlesAction'))
       ->bind('api_programmers_battles_list');
+    $controllers->get('/api', array($this, 'homepageAction'));
   }
 
+  public function homepageAction() {
+    return $this->createApiResponse(array());
+  }
+  
   public function newAction(Request $request) {
     $this->enforceUserSecurity();
      
