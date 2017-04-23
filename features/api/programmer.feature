@@ -93,6 +93,28 @@ Feature: Programmer
     And the "_embedded.programmers" property should contain 2 items
     And the "_embedded.programmers.0.nickname" property should equal "UnitTester"
 
+  # 5 per page  
+  Scenario: I am able to paginate through the programmer resources
+    Given the following programmers exist:
+      | nickname     |
+      | Programmer 1 |
+      | Programmer 2 |
+      | Programmer 3 |
+      | Programmer 4 |
+      | Programmer 5 |
+      | Programmer 6 |
+      | Programmer 7 |
+      | Programmer 8 |
+      | Programmer 9 |
+      | Programmer 10|
+      | Programmer 11|
+      | Programmer 12|
+    When I request "GET /api/programmers"
+    And I follow the "next" link
+    And the "_embedded.programmers" property should contain "Programmer7"
+    And the "_embedded.programmers" property should not contain "Programmer2"
+    And the "_embedded.programmers" property should not contain "Programmer11"
+
   Scenario: Get a collection of battles for a programmer
     Given there is a project called "ProjectA"
     And there is a project called "ProjectB"
