@@ -34,4 +34,4 @@ Feature:
       didProgrammerWin
       notes
       """
-    And print last response  
+    And the "programmerUri" property should equal "/api/programmers/Fred"  
