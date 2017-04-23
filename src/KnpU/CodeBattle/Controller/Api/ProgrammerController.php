@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use KnpU\CodeBattle\Model\Programmer;
+use KnpU\CodeBattle\Model\Homepage;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Hateoas\Representation\CollectionRepresentation;
@@ -39,7 +40,8 @@ class ProgrammerController extends BaseController {
   }
 
   public function homepageAction() {
-    return $this->createApiResponse(array());
+    $homepage = new Homepage();
+    return $this->createApiResponse($homepage);
   }
   
   public function newAction(Request $request) {
