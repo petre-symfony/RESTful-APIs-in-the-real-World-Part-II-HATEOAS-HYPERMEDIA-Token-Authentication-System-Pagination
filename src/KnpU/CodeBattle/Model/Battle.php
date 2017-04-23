@@ -38,4 +38,11 @@ class Battle {
    * @Serializer\Expose()
    */
   public $notes;
+  
+  /**
+   * @Serializer\VirtualProperty()
+   */
+  public function getProgrammerUri() {
+    return '/api/programmers/' . $this->programmer->nickname;
+  }
 }
