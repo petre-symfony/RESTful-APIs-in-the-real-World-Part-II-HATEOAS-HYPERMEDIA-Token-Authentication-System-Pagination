@@ -101,15 +101,16 @@ class ProgrammerController extends BaseController {
     return $response;
   }
   
-  public function listAction() {
+  public function listAction(Request $request) {
     $programmers = $this->getProgrammerRepository()->findAll();
     
-    $page = 1;
-    $limit = 5;
+    $page = $request->query->get('page', 1);
+    $limit = $request->query->get('limit', 5);
     $numberOfPages = ceil(count($programmers)/$limit);
+    $offset = ($page - 1) * $limit;
     
     $collection = new CollectionRepresentation(
-      $programmers,
+      array_slice($programmers, $offset, $limit),
       'programmers'     
     );
     
