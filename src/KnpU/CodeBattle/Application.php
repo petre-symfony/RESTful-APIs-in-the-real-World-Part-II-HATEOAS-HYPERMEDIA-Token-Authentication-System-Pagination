@@ -215,7 +215,7 @@ class Application extends SilexApplication {
         ->setDebug($app['debug'])
         ->setPropertyNamingStrategy(new IdenticalPropertyNamingStrategy()); 
       
-      return \HateoasBuilder::create($serializerBuilder)->build();
+      return HateoasBuilder::create($serializerBuilder)->build();
     });
     
     $this['api.reponse_factory'] = $this->share(function() use ($app){

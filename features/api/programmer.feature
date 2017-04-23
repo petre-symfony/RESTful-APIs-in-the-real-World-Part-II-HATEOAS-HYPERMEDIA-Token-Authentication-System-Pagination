@@ -78,6 +78,7 @@ Feature: Programmer
       """
     And the "nickname" property should equal "UnitTester"
     And the "userId" property should not exist
+    And the "_links.self.href" property should equal "/api/programmers/UnitTester"
 
   Scenario: GET a collection of programmers
     Given the following programmers exist:
