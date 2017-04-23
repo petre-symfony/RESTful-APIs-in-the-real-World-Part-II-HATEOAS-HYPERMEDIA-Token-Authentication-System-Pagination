@@ -34,5 +34,5 @@ Feature:
       didProgrammerWin
       notes
       """
-    And the "programmerUri" property should equal "/api/programmers/Fred"  
+    And the "_links.programmer.href" property should equal "/api/programmers/Fred"
     And print last response
