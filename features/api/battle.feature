@@ -34,3 +34,4 @@ Feature:
       didProgrammerWin
       notes
       """
+    And print last response  
