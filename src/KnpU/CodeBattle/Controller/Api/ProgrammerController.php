@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use KnpU\CodeBattle\Model\Programmer;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Hateoas\Representation\CollectionRepresentation;
 
 class ProgrammerController extends BaseController {
   protected function addRoutes(ControllerCollection $controllers) {
@@ -68,9 +69,12 @@ class ProgrammerController extends BaseController {
 
   public function listAction() {
     $programmers = $this->getProgrammerRepository()->findAll();
-    $data = array('programmers' => $programmers);
+    $collection = new CollectionRepresentation(
+      $programmers,
+      'programmers'
+    );
     
-    $response = $this->createApiResponse($data, 200);
+    $response = $this->createApiResponse($collection, 200);
 
     return $response;
   }
