@@ -38,6 +38,7 @@ use Symfony\Component\Validator\Mapping\ClassMetadataFactory;
 use Symfony\Component\Validator\Mapping\Loader\AnnotationLoader;
 use JMS\Serializer\SerializerBuilder;
 use JMS\Serializer\Naming\IdenticalPropertyNamingStrategy;
+use Hateoas\UrlGenerator\SymfonyUrlGenerator;
 
 class Application extends SilexApplication {
   public function __construct(array $values = array()) {
@@ -215,7 +216,9 @@ class Application extends SilexApplication {
         ->setDebug($app['debug'])
         ->setPropertyNamingStrategy(new IdenticalPropertyNamingStrategy()); 
       
-      return HateoasBuilder::create($serializerBuilder)->build();
+      return HateoasBuilder::create($serializerBuilder)
+         ->setUrlGenerator(null, new SymfonyUrlGenerator($app['url_generator']))     
+        ->build();
     });
     
     $this['api.reponse_factory'] = $this->share(function() use ($app){
