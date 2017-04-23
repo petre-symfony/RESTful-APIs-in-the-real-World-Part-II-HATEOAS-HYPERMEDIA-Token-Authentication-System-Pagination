@@ -111,9 +111,9 @@ Feature: Programmer
       | Programmer 12|
     When I request "GET /api/programmers"
     And I follow the "next" link
-    And the "_embedded.programmers" property should contain "Programmer7"
-    And the "_embedded.programmers" property should not contain "Programmer2"
-    And the "_embedded.programmers" property should not contain "Programmer11"
+    And the "_embedded.programmers" property should contain "Programmer 7"
+    And the "_embedded.programmers" property should not contain "Programmer 2"
+    And the "_embedded.programmers" property should not contain "Programmer 11"
 
   Scenario: Get a collection of battles for a programmer
     Given there is a project called "ProjectA"

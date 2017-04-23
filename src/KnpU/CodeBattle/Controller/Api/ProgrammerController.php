@@ -15,6 +15,7 @@ use KnpU\CodeBattle\Model\Homepage;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Hateoas\Representation\CollectionRepresentation;
+use Hateoas\Representation\PaginatedRepresentation;
 
 class ProgrammerController extends BaseController {
   protected function addRoutes(ControllerCollection $controllers) {
@@ -102,12 +103,26 @@ class ProgrammerController extends BaseController {
   
   public function listAction() {
     $programmers = $this->getProgrammerRepository()->findAll();
+    
+    $page = 1;
+    $limit = 5;
+    $numberOfPages = ceil(count($programmers)/$limit);
+    
     $collection = new CollectionRepresentation(
       $programmers,
       'programmers'     
     );
     
-    $response = $this->createApiResponse($collection, 200);
+    $paginated = new PaginatedRepresentation(
+      $collection,
+      'api_programmers_list',
+      array(),
+      $page,
+      $limit,
+      $numberOfPages      
+    );
+    
+    $response = $this->createApiResponse($paginated, 200);
 
     return $response;
   }
