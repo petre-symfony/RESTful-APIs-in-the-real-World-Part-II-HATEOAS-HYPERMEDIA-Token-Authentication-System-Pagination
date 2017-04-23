@@ -8,7 +8,8 @@ use Symfony\Component\HttpFoundation\Request;
 
 class BattleController extends BaseController{
   protected function addRoutes(\Silex\ControllerCollection $controllers) {
-    $controllers->post('/api/battles', array($this, 'newAction'));
+    $controllers->post('/api/battles', array($this, 'newAction'))
+      ->bind('api_battle_show');
     $controllers->get('/api/battles/{id}', array($this, 'showAction'));
   }
   
@@ -39,6 +40,11 @@ class BattleController extends BaseController{
     
     $response = $this->createApiResponse($battle, 201);
     $response->headers->set('Location', 'TODO');
+    
+    $url = $this->generateUrl('api_battle_show', array(
+      'id' => $battle->id
+    ));
+    $response->headers->set('Location', $url);
     
     return $response;
   }
