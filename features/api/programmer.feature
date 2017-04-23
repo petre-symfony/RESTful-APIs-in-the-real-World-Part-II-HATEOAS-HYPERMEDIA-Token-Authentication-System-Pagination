@@ -5,6 +5,8 @@ Feature: Programmer
 
   Background:
     Given the user "weaverryan" exists
+    And "weaverryan" has an authentication token "ABCD123"
+    And I set the "Authorization" header to be "token ABCD123"
 
   Scenario: Create a programmer
     Given I have the payload:
@@ -75,6 +77,10 @@ Feature: Programmer
       tagLine
       """
     And the "nickname" property should equal "UnitTester"
+    And the "userId" property should not exist
+    #And the "_links.self.href" property should equal "/api/programmers/UnitTester"
+    And the link "self" should exist and its value should be "/api/programmers/UnitTester"
+    
 
   Scenario: GET a collection of programmers
     Given the following programmers exist:
@@ -83,8 +89,9 @@ Feature: Programmer
       | CowboyCoder | 5            |
     When I request "GET /api/programmers"
     Then the response status code should be 200
-    And the "programmers" property should be an array
-    And the "programmers" property should contain 2 items
+    And the "_embedded.programmers" property should be an array
+    And the "_embedded.programmers" property should contain 2 items
+    And the "_embedded.programmers.0.nickname" property should equal "UnitTester"
 
   Scenario: PUT to update a programmer
     Given the following programmers exist:
