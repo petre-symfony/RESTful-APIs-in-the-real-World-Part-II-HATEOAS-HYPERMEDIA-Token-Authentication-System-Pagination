@@ -5,6 +5,8 @@ Feature: Programmer
 
   Background:
     Given the user "weaverryan" exists
+    And "weaverryan" has an authentication token "ABCD123"
+    And I set the "Authorization" header to be "token ABCD123"
 
   Scenario: Create a programmer
     Given I have the payload:
@@ -75,6 +77,9 @@ Feature: Programmer
       tagLine
       """
     And the "nickname" property should equal "UnitTester"
+    And the "userId" property should not exist
+    And the "_links.self.href" property should equal "/api/programmers/UnitTester"
+    And print last response
 
   Scenario: GET a collection of programmers
     Given the following programmers exist:

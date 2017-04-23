@@ -3,6 +3,7 @@
 namespace KnpU\CodeBattle;
 
 use Doctrine\Common\Annotations\AnnotationReader;
+use Hateoas\HateoasBuilder;
 use KnpU\CodeBattle\Api\ApiProblem;
 use KnpU\CodeBattle\Api\ApiProblemException;
 use KnpU\CodeBattle\Battle\PowerManager;
@@ -29,11 +30,14 @@ use Silex\Provider\SecurityServiceProvider;
 use KnpU\CodeBattle\Repository\UserRepository;
 use KnpU\CodeBattle\Repository\ProgrammerRepository;
 use KnpU\CodeBattle\Battle\BattleManager;
+use KnpU\CodeBattle\Api\APIProblemResponseFactory;
 use Silex\Provider\ValidatorServiceProvider;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Validator\Mapping\ClassMetadataFactory;
 use Symfony\Component\Validator\Mapping\Loader\AnnotationLoader;
+use JMS\Serializer\SerializerBuilder;
+use JMS\Serializer\Naming\IdenticalPropertyNamingStrategy;
 
 class Application extends SilexApplication {
   public function __construct(array $values = array()) {
@@ -204,6 +208,19 @@ class Application extends SilexApplication {
     $this['api.validator'] = $this->share(function() use ($app) {
         return new ApiValidator($app['validator']);
     });
+    
+    $this['serializer'] = $this->share(function() use ($app){
+      $serializerBuilder = SerializerBuilder::create()
+        ->setCacheDir($app['root_dir'].'/cache/serializer')
+        ->setDebug($app['debug'])
+        ->setPropertyNamingStrategy(new IdenticalPropertyNamingStrategy()); 
+      
+      return HateoasBuilder::create($serializerBuilder)->build();
+    });
+    
+    $this['api.reponse_factory'] = $this->share(function() use ($app){
+      return new APIProblemResponseFactory();
+    });
   }
 
   private function configureSecurity() {
@@ -218,6 +235,7 @@ class Application extends SilexApplication {
           }),
           'stateless' => true,
           'anonymous' => true,
+          'http'      => true,        
           'api_token' => true,
         ),
         'main' => array(
@@ -258,7 +276,7 @@ class Application extends SilexApplication {
 
       // the class that decides what should happen if no authentication credentials are passed
       $this['security.entry_point.'.$name.'.api_token'] = $app->share(function() use ($app) {
-        return new ApiEntryPoint($app['translator']);
+        return new ApiEntryPoint($app['translator'], $app['api.reponse_factory']);
       });
 
       return array(
@@ -312,18 +330,11 @@ class Application extends SilexApplication {
           $apiProblem->set('detail', $e->getMessage());
         }
       }
-
-      $data = $apiProblem->toArray();
-      // making type a URL, to a temporarily fake page
-      if ($data['type'] != 'about:blank') {
-        $data['type'] = 'http://localhost:8000/docs/errors#'.$data['type'];
-      }
-      $response = new JsonResponse(
-        $data,
-        $apiProblem->getStatusCode()
-      );
-      $response->headers->set('Content-Type', 'application/problem+json');
-
+      
+      /** @var \KnpU\CodeBattle\Api\ApiProblemResponseFactory $factory */
+      $factory = $app['api.reponse_factory'];
+      $response = $factory->createResponse($apiProblem);
+              
       return $response;
     });
   }
