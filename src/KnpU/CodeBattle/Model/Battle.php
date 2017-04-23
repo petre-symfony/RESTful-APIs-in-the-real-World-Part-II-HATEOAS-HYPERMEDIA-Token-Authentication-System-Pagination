@@ -8,7 +8,7 @@ use Hateoas\Configuration\Annotation as Hateoas;
 /**
  * @Serializer\ExclusionPolicy("all")
  * @Hateoas\Relation(
- *   "self", 
+ *   "programmer", 
  *    href = @Hateoas\Route(
  *      "api_programmers_show",
  *      parameters = {"nickname" = "expr(object.programmer.nickname)"}
