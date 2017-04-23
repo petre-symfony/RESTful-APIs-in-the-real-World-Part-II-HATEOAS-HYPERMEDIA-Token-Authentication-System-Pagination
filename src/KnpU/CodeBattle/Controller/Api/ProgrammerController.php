@@ -11,7 +11,11 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use KnpU\CodeBattle\Model\Programmer;
+use KnpU\CodeBattle\Model\Homepage;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Hateoas\Representation\CollectionRepresentation;
+use Hateoas\Representation\PaginatedRepresentation;
 
 class ProgrammerController extends BaseController {
   protected function addRoutes(ControllerCollection $controllers) {
@@ -20,7 +24,8 @@ class ProgrammerController extends BaseController {
     $controllers->get('/api/programmers/{nickname}', array($this, 'showAction'))
       ->bind('api_programmers_show');
 
-    $controllers->get('/api/programmers', array($this, 'listAction'));
+    $controllers->get('/api/programmers', array($this, 'listAction'))
+      ->bind('api_programmers_list');
 
     // point PUT and PATCH at the same controller
     $controllers->put('/api/programmers/{nickname}', array($this, 'updateAction'));
@@ -29,9 +34,22 @@ class ProgrammerController extends BaseController {
       ->method('PATCH');
 
     $controllers->delete('/api/programmers/{nickname}', array($this, 'deleteAction'));
+    
+    
+    $controllers->get('/api/programmers/{nickname}/battles', array($this, 'listBattlesAction'))
+      ->bind('api_programmers_battles_list');
+    $controllers->get('/api', array($this, 'homepageAction'))
+      ->bind('api_homepage');
   }
 
+  public function homepageAction() {
+    $homepage = new Homepage();
+    return $this->createApiResponse($homepage);
+  }
+  
   public function newAction(Request $request) {
+    $this->enforceUserSecurity();
+     
     $programmer = new Programmer();
     $this->handleRequest($request, $programmer);
 
@@ -40,8 +58,8 @@ class ProgrammerController extends BaseController {
     }
 
     $this->save($programmer);
-    $data = $this->serializeProgrammer($programmer);
-    $response = new JsonResponse($data, 201);
+    
+    $response = $this->createApiResponse($programmer, 201);
     $programmerUrl = $this->generateUrl(
       'api_programmers_show',
       ['nickname' => $programmer->nickname]
@@ -58,21 +76,54 @@ class ProgrammerController extends BaseController {
       $this->throw404('Oh no! This programmer has deserted! We\'ll send a search party!');
     }
 
-    $data = $this->serializeProgrammer($programmer);
-
-    $response = new JsonResponse($data, 200);
+    $response = $this->createApiResponse($programmer, 200);
 
     return $response;
   }
 
-  public function listAction() {
-    $programmers = $this->getProgrammerRepository()->findAll();
-    $data = array('programmers' => array());
-    foreach ($programmers as $programmer) {
-      $data['programmers'][] = $this->serializeProgrammer($programmer);
-    }
+  public function listBattlesAction($nickname) {
+    $programmer = $this->getProgrammerRepository()->findOneByNickname($nickname);
 
-    $response = new JsonResponse($data, 200);
+    if (!$programmer) {
+      $this->throw404('Oh no! This programmer has deserted! We\'ll send a search party!');
+    }
+    
+    $battles = $this->getBattleRepository()
+      ->findAllBy(array('programmerId' => $programmer->id));
+    
+    $collection = new CollectionRepresentation(
+      $battles,
+      'battles'     
+    );
+    
+    $response = $this->createApiResponse($collection, 200);
+
+    return $response;
+  }
+  
+  public function listAction(Request $request) {
+    $programmers = $this->getProgrammerRepository()->findAll();
+    
+    $page = $request->query->get('page', 1);
+    $limit = $request->query->get('limit', 5);
+    $numberOfPages = ceil(count($programmers)/$limit);
+    $offset = ($page - 1) * $limit;
+    
+    $collection = new CollectionRepresentation(
+      array_slice($programmers, $offset, $limit),
+      'programmers'     
+    );
+    
+    $paginated = new PaginatedRepresentation(
+      $collection,
+      'api_programmers_list',
+      array(),
+      $page,
+      $limit,
+      $numberOfPages      
+    );
+    
+    $response = $this->createApiResponse($paginated, 200);
 
     return $response;
   }
@@ -83,6 +134,8 @@ class ProgrammerController extends BaseController {
     if (!$programmer) {
       $this->throw404('Oh no! This programmer has deserted! We\'ll send a search party!');
     }
+    
+    $this->enforceProgrammerOwnershipSecurity($programmer);
 
     $this->handleRequest($request, $programmer);
 
@@ -92,9 +145,7 @@ class ProgrammerController extends BaseController {
 
     $this->save($programmer);
 
-    $data = $this->serializeProgrammer($programmer);
-
-    $response = new JsonResponse($data, 200);
+    $response = $this->createApiResponse($programmer, 200);
 
     return $response;
   }
@@ -102,6 +153,8 @@ class ProgrammerController extends BaseController {
   public function deleteAction($nickname) {
     $programmer = $this->getProgrammerRepository()->findOneByNickname($nickname);
 
+    $this->enforceProgrammerOwnershipSecurity($programmer);
+    
     if ($programmer) {
       $this->delete($programmer);
     }
@@ -116,16 +169,8 @@ class ProgrammerController extends BaseController {
    * @param Programmer $programmer
    */
   private function handleRequest(Request $request, Programmer $programmer) {
-    $data = json_decode($request->getContent(), true);
+    $data = $this->decodeRequestBodyIntoParameters($request);
     $isNew = !$programmer->id;
-
-    if ($data === null) {
-      $problem = new ApiProblem(
-        400,
-        ApiProblem::TYPE_INVALID_REQUEST_BODY_FORMAT
-      );
-      throw new ApiProblemException($problem);
-    }
 
     // determine which properties should be changeable on this request
     $apiProperties = array('avatarNumber', 'tagLine');
@@ -136,33 +181,13 @@ class ProgrammerController extends BaseController {
     // update the properties
     foreach ($apiProperties as $property) {
       // if a property is missing on PATCH, that's ok - just skip it
-      if (!isset($data[$property]) && $request->isMethod('PATCH')) {
+      if (!$data->has($property) && $request->isMethod('PATCH')) {
         continue;
       }
 
-      $val = isset($data[$property]) ? $data[$property] : null;
-      $programmer->$property = $val;
+      $programmer->$property = $data->get($property);
     }
 
-    $programmer->userId = $this->findUserByUsername('weaverryan')->id;
-  }
-
-  private function serializeProgrammer(Programmer $programmer) {
-    return array(
-      'nickname' => $programmer->nickname,
-      'avatarNumber' => $programmer->avatarNumber,
-      'powerLevel' => $programmer->powerLevel,
-      'tagLine' => $programmer->tagLine,
-    );
-  }
-
-  private function throwApiProblemValidationException(array $errors) {
-    $apiProblem = new ApiProblem(
-      400,
-      ApiProblem::TYPE_VALIDATION_ERROR
-    );
-    $apiProblem->set('errors', $errors);
-
-    throw new ApiProblemException($apiProblem);
+    $programmer->userId = $this->getLoggedInUser()->id;
   }
 }
